@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -36,8 +37,6 @@ public class MapsActivity extends AppCompatActivity {
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         supportMapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapView);
-
-        client = LocationServices.getFusedLocationProviderClient(this);
 
         //get map permission
         if (ActivityCompat.checkSelfPermission(MapsActivity.this,
@@ -70,25 +69,26 @@ public class MapsActivity extends AppCompatActivity {
     }
 
     private void getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Task<Location> task = client.getLastLocation();
-            task.addOnSuccessListener(new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(final Location location) {
-                        if (location != null) {
-                            supportMapFragment.getMapAsync(new OnMapReadyCallback() {
-                                @Override
-                                public void onMapReady(GoogleMap googleMap) {
-                                    LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
-                                    MarkerOptions options = new MarkerOptions().position(point).title("you are here");
-                                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 10));
-                                    googleMap.addMarker(options);
-                                }
-                            });
+        client = LocationServices.getFusedLocationProviderClient(this);
+        @SuppressLint("MissingPermission")
+        Task<Location> task = client.getLastLocation();
+        task.addOnSuccessListener(new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(final Location location) {
+                if (location != null) {
+                    supportMapFragment.getMapAsync(new OnMapReadyCallback() {
+                        @Override
+                        public void onMapReady(GoogleMap googleMap) {
+                            LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
+                            MarkerOptions options = new MarkerOptions().position(point).title("you are here");
+                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 10));
+                            googleMap.addMarker(options);
                         }
-                    }
-            });
-        }
+                    });
+                }
+            }
+        });
+
     }
 
     //try again when permission graded
