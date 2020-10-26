@@ -12,7 +12,17 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Spinner;
+import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -25,16 +35,30 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class MapsActivity extends AppCompatActivity {
 
+    Spinner spinner_box;
+    Button button_weather;
     SupportMapFragment supportMapFragment;
     FusedLocationProviderClient client;
+    TextView Text_weather;
+    RequestQueue weather_Q;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+
+        weather_Q = Volley.newRequestQueue(this);
+        spinner_box = findViewById(R.id.spin_box);
+        button_weather = findViewById(R.id.btn_weather);
+        Text_weather = findViewById(R.id.txt_weather);
+
+        // Obtain the SupportMapFragment
         supportMapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapView);
 
@@ -47,6 +71,14 @@ public class MapsActivity extends AppCompatActivity {
             //if permission not graded, ask for permission
             ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
         }
+
+        //button on click
+        button_weather.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getWeather();
+            }
+        });
 
         //navigation bar
         BottomNavigationView navView = findViewById(R.id.nav_view);
@@ -85,6 +117,44 @@ public class MapsActivity extends AppCompatActivity {
                             googleMap.addMarker(options);
                         }
                     });
+                }
+            }
+        });
+
+    }
+
+    private void getWeather() {
+        client = LocationServices.getFusedLocationProviderClient(this);
+        @SuppressLint("MissingPermission")
+        Task<Location> task = client.getLastLocation();
+        task.addOnSuccessListener(new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(final Location location) {
+                if (location != null) {
+                    String url = "api.openweathermap.org/data/2.5/weather?lat=" + location.getLatitude()
+                            + "&lon=" + location.getLongitude() + "&appid="
+                            + "a035e9b73f7acc164a03ef81f29ebb25";
+                    JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                JSONArray jsonArray = response.getJSONArray("weather");
+                                for (int i = 0; i < jsonArray.length(); i++) {
+                                    JSONObject weather = jsonArray.getJSONObject(i);
+                                    String description = weather.getString("description");
+                                    Text_weather.setText("des" + description);
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            error.printStackTrace();
+                        }
+                    });
+                    weather_Q.add(request);
                 }
             }
         });

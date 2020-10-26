@@ -34,8 +34,8 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     Button btnLocation;
-    TextView textView1,textView2,textView3,textView4;
-    FusedLocationProviderClient fusedLocationProviderClient;
+    TextView textView1, textView2, textView3, textView4;
+    FusedLocationProviderClient Client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,15 +49,14 @@ public class MainActivity extends AppCompatActivity {
         textView3 = findViewById(R.id.text3);
         textView4 = findViewById(R.id.text4);
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         btnLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (ActivityCompat.checkSelfPermission(MainActivity.this,Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     getLocation();
-                }else {
-                    ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},44);
+                } else {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
                 }
             }
         });
@@ -73,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.navigation_home:
                         return true;
                     case R.id.navigation_map:
-                        startActivity(new Intent(getApplicationContext(),MapsActivity.class));
-                        overridePendingTransition(0,0);
+                        startActivity(new Intent(getApplicationContext(), MapsActivity.class));
+                        overridePendingTransition(0, 0);
                         return true;
                 }
                 return false;
@@ -82,16 +81,22 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @SuppressLint("MissingPermission")
+
     private void getLocation() {
-        fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION},101);
+            return;
+        }
+        Client = LocationServices.getFusedLocationProviderClient(this);
+
+        Client.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
             @Override
             public void onComplete(@NonNull Task<Location> task) {
                 Location location = task.getResult();
                 if (location != null) {
                     try {
                         Geocoder geocoder = new Geocoder(MainActivity.this, Locale.getDefault());
-                        List<Address> address = geocoder.getFromLocation(location.getLatitude(),location.getLongitude(),1);
+                        List<Address> address = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
 
                         textView1.setText("Latitude: " + address.get(0).getLatitude());
                         textView2.setText("Longitude: " + address.get(0).getLongitude());
