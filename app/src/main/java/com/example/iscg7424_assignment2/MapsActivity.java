@@ -131,27 +131,27 @@ public class MapsActivity extends AppCompatActivity {
             @Override
             public void onSuccess(final Location location) {
                 if (location != null) {
-                    String url = "api.openweathermap.org/data/2.5/weather?lat=" + location.getLatitude()
-                            + "&lon=" + location.getLongitude() + "&appid="
-                            + "a035e9b73f7acc164a03ef81f29ebb25";
+                    String url = "http://api.openweathermap.org/data/2.5/weather?lat=" + location.getLatitude()
+                            + "&lon=" + location.getLongitude() + "&appid=a035e9b73f7acc164a03ef81f29ebb25";
                     JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             try {
+                                Text_weather.setText("des" + response.getJSONObject("weather").getString("description"));
                                 JSONArray jsonArray = response.getJSONArray("weather");
-                                for (int i = 0; i < jsonArray.length(); i++) {
-                                    JSONObject weather = jsonArray.getJSONObject(i);
-                                    String description = weather.getString("description");
-                                    Text_weather.setText("des" + description);
-                                }
+                                JSONObject weather = jsonArray.getJSONObject(0);
+                                String description = weather.getString("description");
+                                Text_weather.setText("description: " + description);
                             } catch (JSONException e) {
                                 e.printStackTrace();
+                                Text_weather.setText("error Json");
                             }
                         }
                     }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             error.printStackTrace();
+                            Text_weather.setText("error no response");
                         }
                     });
                     weather_Q.add(request);

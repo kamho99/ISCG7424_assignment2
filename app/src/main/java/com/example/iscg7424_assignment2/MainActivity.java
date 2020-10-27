@@ -82,11 +82,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @SuppressLint("MissingPermission")
     private void getLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION},101);
-            return;
-        }
         Client = LocationServices.getFusedLocationProviderClient(this);
 
         Client.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
