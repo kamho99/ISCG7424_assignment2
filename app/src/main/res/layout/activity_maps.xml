@@ -45,6 +45,15 @@
         map:layout_constraintStart_toStartOf="parent"
         map:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/txt_temp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="70dp"
+        android:layout_marginLeft="15dp"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="parent" />
+
     <Button
         android:id="@+id/btn_weather"
         android:layout_width="wrap_content"

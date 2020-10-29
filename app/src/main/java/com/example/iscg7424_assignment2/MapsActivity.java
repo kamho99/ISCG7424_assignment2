@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -46,6 +47,7 @@ public class MapsActivity extends AppCompatActivity {
     SupportMapFragment supportMapFragment;
     FusedLocationProviderClient client;
     TextView Text_weather;
+    TextView Text_temp;
     RequestQueue weather_Q;
 
     @Override
@@ -53,10 +55,12 @@ public class MapsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        weather_Q = Volley.newRequestQueue(this);
+
         spinner_box = findViewById(R.id.spin_box);
         button_weather = findViewById(R.id.btn_weather);
         Text_weather = findViewById(R.id.txt_weather);
+        Text_temp = findViewById(R.id.txt_temp);
+
 
         // Obtain the SupportMapFragment
         supportMapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -124,6 +128,7 @@ public class MapsActivity extends AppCompatActivity {
     }
 
     private void getWeather() {
+        weather_Q = Volley.newRequestQueue(MapsActivity.this);
         client = LocationServices.getFusedLocationProviderClient(this);
         @SuppressLint("MissingPermission")
         Task<Location> task = client.getLastLocation();
@@ -131,17 +136,24 @@ public class MapsActivity extends AppCompatActivity {
             @Override
             public void onSuccess(final Location location) {
                 if (location != null) {
-                    String url = "http://api.openweathermap.org/data/2.5/weather?lat=" + location.getLatitude()
-                            + "&lon=" + location.getLongitude() + "&appid=a035e9b73f7acc164a03ef81f29ebb25";
-                    JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                    String url = "https://api.openweathermap.org/data/2.5/weather?lat=" + location.getLatitude()
+                            + "&lon=" + location.getLongitude() + "&units=metric&appid=a035e9b73f7acc164a03ef81f29ebb25";
+                    JSONObject jsonObject = null;
+                    JsonObjectRequest request = new JsonObjectRequest (Request.Method.GET, url, jsonObject, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             try {
-                                Text_weather.setText("des" + response.getJSONObject("weather").getString("description"));
-                                JSONArray jsonArray = response.getJSONArray("weather");
-                                JSONObject weather = jsonArray.getJSONObject(0);
+                                JSONArray weatherArray = response.getJSONArray("weather");
+                                JSONObject weather = weatherArray.getJSONObject(0);
                                 String description = weather.getString("description");
-                                Text_weather.setText("description: " + description);
+                                Text_weather.setText("current status: " + description);
+                                JSONObject temp = response.getJSONObject("main");
+                                int temperature = temp.getInt("temp");
+                                int max_temp = temp.getInt("temp_max");
+                                int min_temp = temp.getInt("temp_min");
+                                Text_temp.setText("current temperature: " + temperature
+                                        + "°C\nMaximum temp: " + max_temp
+                                        + "°C\nMinimum temp: " + min_temp + "°C");
                             } catch (JSONException e) {
                                 e.printStackTrace();
                                 Text_weather.setText("error Json");
@@ -152,6 +164,7 @@ public class MapsActivity extends AppCompatActivity {
                         public void onErrorResponse(VolleyError error) {
                             error.printStackTrace();
                             Text_weather.setText("error no response");
+                            Log.d("Error", "error no response", error);
                         }
                     });
                     weather_Q.add(request);
